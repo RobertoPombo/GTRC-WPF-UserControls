@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34601.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTRC_WPF_UserControls", "GTRC_WPF_UserControls.csproj", "{2C9E7C11-E76A-4366-93FA-497CC4161643}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTRC_WPF_UserControls", "GTRC_WPF_UserControls.csproj", "{2C9E7C11-E76A-4366-93FA-497CC4161643}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTRC_Basics", "..\GTRC-Basics\GTRC_Basics.csproj", "{2938CCDE-396F-44DD-A2B1-1B95E47C6324}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTRC_WPF", "..\GTRC-WPF\GTRC_WPF.csproj", "{0F27CF63-E162-4F3F-99EC-AF52B42FC98D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTRC_Database_Client", "..\GTRC-Database-Client\GTRC_Database_Client.csproj", "{E4E42DB1-A956-4ADC-B9A0-E547FDB33266}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{2C9E7C11-E76A-4366-93FA-497CC4161643}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C9E7C11-E76A-4366-93FA-497CC4161643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C9E7C11-E76A-4366-93FA-497CC4161643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2938CCDE-396F-44DD-A2B1-1B95E47C6324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2938CCDE-396F-44DD-A2B1-1B95E47C6324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2938CCDE-396F-44DD-A2B1-1B95E47C6324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2938CCDE-396F-44DD-A2B1-1B95E47C6324}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F27CF63-E162-4F3F-99EC-AF52B42FC98D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F27CF63-E162-4F3F-99EC-AF52B42FC98D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F27CF63-E162-4F3F-99EC-AF52B42FC98D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F27CF63-E162-4F3F-99EC-AF52B42FC98D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4E42DB1-A956-4ADC-B9A0-E547FDB33266}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4E42DB1-A956-4ADC-B9A0-E547FDB33266}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4E42DB1-A956-4ADC-B9A0-E547FDB33266}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4E42DB1-A956-4ADC-B9A0-E547FDB33266}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

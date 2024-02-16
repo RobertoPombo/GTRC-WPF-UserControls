@@ -7,4 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GTRC-Basics\GTRC_Basics.csproj" />
+    <ProjectReference Include="..\GTRC-Database-Client\GTRC_Database_Client.csproj" />
+    <ProjectReference Include="..\GTRC-WPF\GTRC_WPF.csproj" />
+  </ItemGroup>
+
 </Project>
