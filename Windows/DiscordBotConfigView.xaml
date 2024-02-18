@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="GTRC_WPF_UserControls.Windows.DiscordBotConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GTRC_WPF_UserControls.Windows"
+             mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
+        <StackPanel Orientation="Horizontal">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="SettingNames"/>
+                    <ColumnDefinition Width="Auto" MinWidth="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="5">
+                    <Label Content="Discord Bot"
+                           Style="{StaticResource LabelStyle}" Margin="0" HorizontalAlignment="Center"/>
+                    <Button Command="{Binding SaveJsonCmd}"
+                            Style="{StaticResource SavButtonStyle}" Margin="1,5"/>
+                    <Button Command="{Binding RestoreJsonCmd}"
+                            Style="{StaticResource ResButtonStyle}" Margin="1,5"/>
+                </StackPanel>
+
+                <Grid Grid.Row="0" Grid.Column="1" Margin="10,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding List, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding Selected, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Name" Style="{StaticResource ComboBoxStyle}" Cursor="Hand"/>
+                    <CheckBox Grid.Column="1"
+                              IsChecked="{Binding IsActive}"
+                              Style="{StaticResource SwitchCheckBoxStyle}" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                    <Button Grid.Column="2"
+                            Command="{Binding AddPresetCmd}"
+                            Style="{StaticResource AddButtonStyle}" Margin="0"/>
+                    <Button Grid.Column="3"
+                            Command="{Binding DelPresetCmd}"
+                            Style="{StaticResource DelButtonStyle}" Margin="0"/>
+                </Grid>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="Name" Style="{StaticResource LabelStyle}" Margin="5"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="Bot ID" Style="{StaticResource LabelStyle}" Margin="5"/>
+                <Label Grid.Row="3" Grid.Column="0" Content="Server ID" Style="{StaticResource LabelStyle}" Margin="5"/>
+                <Label Grid.Row="4" Grid.Column="0" Content="Max Message Size" Style="{StaticResource LabelStyle}" Margin="5"/>
+
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Selected.Name}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Selected.DiscordBotId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Selected.DiscordServerId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Selected.CharLimit}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+            </Grid>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

@@ -2,6 +2,7 @@
 using System.Windows;
 
 using GTRC_Basics;
+using GTRC_Basics.Configs;
 using GTRC_WPF;
 
 namespace GTRC_WPF_UserControls.ViewModels
