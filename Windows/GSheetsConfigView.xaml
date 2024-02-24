@@ -72,7 +72,7 @@
                 <ItemsControl Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Selected.TableList}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBox Text="{Binding DocID}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                            <TextBox Text="{Binding DocId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -80,7 +80,7 @@
                 <ItemsControl Grid.Row="3" Grid.Column="2" ItemsSource="{Binding Selected.TableList}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBox Text="{Binding SheetID}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                            <TextBox Text="{Binding SheetId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
