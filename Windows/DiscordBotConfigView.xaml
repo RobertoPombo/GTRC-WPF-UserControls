@@ -19,6 +19,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="5">
@@ -56,11 +58,21 @@
                 <Label Grid.Row="2" Grid.Column="0" Content="Bot ID" Style="{StaticResource LabelStyle}" Margin="5"/>
                 <Label Grid.Row="3" Grid.Column="0" Content="Server ID" Style="{StaticResource LabelStyle}" Margin="5"/>
                 <Label Grid.Row="4" Grid.Column="0" Content="Max Message Size" Style="{StaticResource LabelStyle}" Margin="5"/>
+                <Label Grid.Row="5" Grid.Column="0" Content="Series" Style="{StaticResource LabelStyle}" Margin="5"/>
+                <Label Grid.Row="6" Grid.Column="0" Content="Season" Style="{StaticResource LabelStyle}" Margin="5"/>
 
                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Selected.Name}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Selected.DiscordBotId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Selected.DiscordServerId}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
                 <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Selected.CharLimit}" Style="{StaticResource TextBoxStyle}" Margin="10,5"/>
+                <ComboBox Grid.Row="5" Grid.Column="1"
+                          ItemsSource="{Binding ListSeries, UpdateSourceTrigger=PropertyChanged}" MinWidth="100"
+                          SelectedValue="{Binding Series, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="Name" Style="{StaticResource ComboBoxStyle}" Margin="10,5" Cursor="Hand"/>
+                <ComboBox Grid.Row="6" Grid.Column="1"
+                          ItemsSource="{Binding ListSeasons, UpdateSourceTrigger=PropertyChanged}" MinWidth="100"
+                          SelectedValue="{Binding Season, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="Name" Style="{StaticResource ComboBoxStyle}" Margin="10,5" Cursor="Hand"/>
             </Grid>
         </StackPanel>
     </StackPanel>
