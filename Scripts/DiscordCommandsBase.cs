@@ -3,57 +3,73 @@ using Discord.Commands;
 using System.Net;
 
 using GTRC_Basics;
-using GTRC_Basics.Configs;
 using GTRC_Basics.Models;
 using GTRC_Basics.Models.DTOs;
-using GTRC_Database_Client;
 using GTRC_Database_Client.Responses;
+using GTRC_Database_Client;
 using GTRC_WPF_UserControls.ViewModels;
 
 namespace GTRC_WPF_UserControls.Scripts
 {
     public class DiscordCommandsBase : ModuleBase<SocketCommandContext>
     {
-        public static DiscordCommandsBase? Instance;
         public static readonly DiscordBot DiscordBot = new();
 
-        public static readonly Emoji emojiSuccess = new("✅");
-        public static readonly Emoji emojiFail = new("❌");
-        public static readonly Emoji emojiWTF = new("🤷‍♀️");
-        public static readonly Emoji emojiSleep = new("😴");
-        public static readonly Emoji emojiShocked = new("😱");
-        public static readonly Emoji emojiRaceCar = new("🏎️");
-        public static readonly Emoji emojiPartyFace = new("🥳");
-        public static readonly Emoji emojiCry = new("😭");
-        public static readonly Emoji emojiThinking = new("🤔");
+        public static readonly Emoji EmojiSuccess = new("✅");
+        public static readonly Emoji EmojiFail = new("❌");
+        public static readonly Emoji EmojiWTF = new("🤷‍♀️");
+        public static readonly Emoji EmojiSleep = new("😴");
+        public static readonly Emoji EmojiShocked = new("😱");
+        public static readonly Emoji EmojiRaceCar = new("🏎️");
+        public static readonly Emoji EmojiPartyFace = new("🥳");
+        public static readonly Emoji EmojiCry = new("😭");
+        public static readonly Emoji EmojiThinking = new("🤔");
 
-        public DiscordBotConfig? Config;
+        private static readonly string AdminRoleName = "Communityleitung";
+
         public bool IsError = false;
         public string LogText = string.Empty;
+        public ulong ChannelId = GlobalValues.NoDiscordId;
         public ulong AuthorDiscordId = GlobalValues.NoDiscordId;
         public User? User;
         public List<Role> AuthorRoles = [];
         public bool UserIsAdmin = false;
         public Season? Season;
+        public Role AdminRole = new();
 
-        private static readonly string AdminRoleName = "Communityleitung";
+        public string AdminRoleTag { get { return "<@&" + AdminRole.DiscordId.ToString() + ">"; } }
 
         public DiscordCommandsBase()
         {
-            Instance = this;
-            Initialize();
-            DiscordBotConfigVM.ChangedDiscordBotIsActive += Initialize;
+            InitializeBase();
+            DiscordBotConfigVM.ChangedDiscordBotIsActive += InitializeBase;
         }
 
-        public void Initialize()
+        public void InitializeBase()
         {
-            Config = DiscordBotConfig.GetActiveBot();
+            Initialize();
+            _ = GetAdminRole();
+        }
+
+        public virtual void Initialize() { }
+
+        public async Task GetAdminRole()
+        {
+            UniqPropsDto<Role> roleUniqDto = new() { Dto = new RoleUniqPropsDto0() { Name = AdminRoleName } };
+            DbApiObjectResponse<Role> roleResponse = await DbApi.Connection.Role.GetByUniqProps(roleUniqDto);
+            if (roleResponse.Status == HttpStatusCode.OK) { AdminRole = roleResponse.Object; }
         }
 
         public async Task SetDefaultProperties()
         {
             IsError = false;
-            AuthorDiscordId = Context.Message.Author.Id;
+            if (DiscordBot.Config is not null)
+            {
+                DbApiObjectResponse<Season> seasonResponse = await DbApi.Connection.Season.GetById(DiscordBot.Config.SeasonId);
+                if (seasonResponse.Status == HttpStatusCode.OK) { Season = seasonResponse.Object; }
+            }
+            if (Context is not null) { AuthorDiscordId = Context.Message.Author.Id; ChannelId = Context.Message.Channel.Id; }
+            else { AuthorDiscordId = GlobalValues.NoDiscordId; ChannelId = GlobalValues.NoDiscordId; }
             UniqPropsDto<User> uniqUserDto = new() { Index = 1, Dto = new UserUniqPropsDto1 { DiscordId = AuthorDiscordId } };
             DbApiObjectResponse<User> userResponse = await DbApi.DynConnection.User.GetByUniqProps(uniqUserDto);
             if (userResponse.Status == HttpStatusCode.OK)
@@ -63,11 +79,6 @@ namespace GTRC_WPF_UserControls.Scripts
                 if (roleResponse.Status == HttpStatusCode.OK) { AuthorRoles = roleResponse.List; }
                 foreach (Role role in AuthorRoles) { if (role.Name == AdminRoleName) { UserIsAdmin = true; break; } }
             }
-            if (Config is not null)
-            {
-                DbApiObjectResponse<Season> seasonResponse = await DbApi.Connection.Season.GetById(Config.SeasonId);
-                if (seasonResponse.Status == HttpStatusCode.OK) { Season = seasonResponse.Object; }
-            }
         }
 
         public async Task ErrorResponse()
@@ -75,25 +86,14 @@ namespace GTRC_WPF_UserControls.Scripts
             if (!IsError)
             {
                 if (LogText.Length > 0) { await ReplyAsync(LogText); }
-                await Context.Message.RemoveAllReactionsAsync();
-                await Context.Message.AddReactionAsync(emojiFail);
+                if (Context is not null)
+                {
+                    await Context.Message.RemoveAllReactionsAsync();
+                    await Context.Message.AddReactionAsync(EmojiFail);
+                }
                 LogText = string.Empty;
                 IsError = true;
             }
-        }
-
-        public (List<dynamic>, int, ComponentBuilder) AddOption2Menu(string value, string name, List<dynamic> ListMenu, int optionCount, ComponentBuilder component, string id, string placeholder)
-        {
-            int countListMenu = ListMenu.Count;
-            optionCount++;
-            if (optionCount > 25)
-            {
-                ListMenu.Add(new SelectMenuBuilder() { CustomId = id + countListMenu.ToString(), Placeholder = placeholder });
-                optionCount = 1; countListMenu++;
-                component.WithSelectMenu(ListMenu[countListMenu - 2]);
-            }
-            ListMenu[countListMenu - 1].AddOption(value, name);
-            return (ListMenu, optionCount, component);
         }
     }
 }

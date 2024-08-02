@@ -95,9 +95,9 @@ namespace GTRC_WPF_UserControls.ViewModels
 
         public async Task GetListSeries()
         {
+            DbApiListResponse<Series> response = await DbApi.DynConnection.Series.GetAll();
             Series = null;
             ListSeries = [];
-            DbApiListResponse<Series> response = await DbApi.DynConnection.Series.GetAll();
             if (response.Status == HttpStatusCode.OK)
             {
                 foreach (Series obj in response.List) { ListSeries.Add(obj); }
