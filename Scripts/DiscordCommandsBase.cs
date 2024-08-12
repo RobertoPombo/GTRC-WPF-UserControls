@@ -68,7 +68,11 @@ namespace GTRC_WPF_UserControls.Scripts
                 DbApiObjectResponse<Season> seasonResponse = await DbApi.Connection.Season.GetById(DiscordBot.Config.SeasonId);
                 if (seasonResponse.Status == HttpStatusCode.OK) { Season = seasonResponse.Object; }
             }
-            if (Context is not null) { AuthorDiscordId = Context.Message.Author.Id; ChannelId = Context.Message.Channel.Id; }
+            if (Context is not null && DiscordBot.Config is not null)
+            {
+                if (Context.Message.Author.Id != DiscordBot.Config.DiscordBotId) { AuthorDiscordId = Context.Message.Author.Id; }
+                ChannelId = Context.Message.Channel.Id;
+            }
             else { AuthorDiscordId = GlobalValues.NoDiscordId; ChannelId = GlobalValues.NoDiscordId; }
             UniqPropsDto<User> uniqUserDto = new() { Index = 1, Dto = new UserUniqPropsDto1 { DiscordId = AuthorDiscordId } };
             DbApiObjectResponse<User> userResponse = await DbApi.DynConnection.User.GetByUniqProps(uniqUserDto);
@@ -94,6 +98,23 @@ namespace GTRC_WPF_UserControls.Scripts
                 LogText = string.Empty;
                 IsError = true;
             }
+        }
+
+        [Command("befehle")] public async Task ExplainCommands()
+        {
+            if (DiscordBot.Config is not null && Context is not null)
+            {
+                await Context.Message.AddReactionAsync(EmojiSleep);
+                await SetDefaultProperties();
+                if (ChannelId != GlobalValues.NoDiscordId)
+                {
+                    string text = "Es sind keine Befehle für den Discord-Bot verfügbar.";
+                    await DiscordBot.SendMessage(text, ChannelId, GTRC_WPF.DiscordMessageType.Commands);
+                    await Context.Message.DeleteAsync();
+                }
+                else { await ErrorResponse(); }
+            }
+            else { await ErrorResponse(); }
         }
     }
 }

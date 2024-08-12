@@ -8,6 +8,8 @@ using System.Reflection;
 using GTRC_Basics.Configs;
 using GTRC_WPF_UserControls.ViewModels;
 using GTRC_Basics;
+using GTRC_WPF_UserControls.Models;
+using GTRC_WPF;
 
 namespace GTRC_WPF_UserControls.Scripts
 {
@@ -25,6 +27,7 @@ namespace GTRC_WPF_UserControls.Scripts
         {
             Initialize();
             DiscordBotConfigVM.ChangedDiscordBotIsActive += Initialize;
+            TemporaryDiscordMessage.LoadJson();
         }
 
         private Task ClientLog(LogMessage arg) { return Task.CompletedTask; }
@@ -62,7 +65,8 @@ namespace GTRC_WPF_UserControls.Scripts
                         var result = await commands.ExecuteAsync(context, argPos, services);
                         if (!result.IsSuccess && userMessage is not null)
                         {
-                            await userMessage.DeleteAsync();
+                            await userMessage.Channel.SendMessageAsync("!befehle");
+                            await userMessage.AddReactionAsync(DiscordCommandsBase.EmojiFail);
                         }
                     }
                 }
@@ -84,16 +88,29 @@ namespace GTRC_WPF_UserControls.Scripts
             }
         }
 
-        public async Task SendMessage(string messageContent, ulong channelId)
+        public async Task SendMessage(string messageContent, ulong channelId, DiscordMessageType discordMessageType)
         {
             if (Config is not null && Client is not null)
             {
                 SocketTextChannel? channel = Client.GetGuild(Config.DiscordServerId)?.GetTextChannel(channelId);
-                if (channel is not null) { await SendMessageRecursive(channel, messageContent); }
+                if (channel is not null)
+                {
+                    TemporaryDiscordMessage newMessage = new() { ChannelId = channelId, Type = discordMessageType };
+                    for (int index = TemporaryDiscordMessage.List.Count - 1; index >= 0; index--)
+                    {
+                        if (TemporaryDiscordMessage.List[index].ChannelId == newMessage.ChannelId && newMessage.DoesOverride(TemporaryDiscordMessage.List[index]))
+                        {
+                            await DeleteMessage(channel, TemporaryDiscordMessage.List[index].MessageId);
+                            TemporaryDiscordMessage.List.RemoveAt(index);
+                        }
+                    }
+                    TemporaryDiscordMessage.SaveJson();
+                    await SendMessageRecursive(channel, messageContent, discordMessageType);
+                }
             }
         }
 
-        public async Task SendMessageRecursive(SocketTextChannel channel, string messageContent)
+        private async Task SendMessageRecursive(SocketTextChannel channel, string messageContent, DiscordMessageType discordMessageType)
         {
             List<string> keys = ["**\n", "\n"];
             string part1;
@@ -125,18 +142,28 @@ namespace GTRC_WPF_UserControls.Scripts
                         break;
                     }
                 }
-                await SendMessage(channel, part1);
-                await SendMessageRecursive(channel, part2);
+                await SendMessage(channel, part1, discordMessageType);
+                await SendMessageRecursive(channel, part2, discordMessageType);
             }
             else
             {
-                await SendMessage(channel, messageContent);
+                await SendMessage(channel, messageContent, discordMessageType);
             }
         }
 
-        public static async Task SendMessage(SocketTextChannel channel, string MessageContent)
+        private static async Task SendMessage(SocketTextChannel channel, string MessageContent, DiscordMessageType discordMessageType)
         {
-            await channel.SendMessageAsync(MessageContent);
+            IUserMessage newUserMessage = await channel.SendMessageAsync(MessageContent);
+            TemporaryDiscordMessage newMessage = new() { MessageId = newUserMessage.Id, ChannelId = channel.Id, Type = discordMessageType };
+            TemporaryDiscordMessage.List.Add(newMessage);
+            TemporaryDiscordMessage.SaveJson();
+        }
+
+        private static async Task DeleteMessage(SocketTextChannel channel, ulong messageId)
+        {
+            IMessage? oldMessage = null;
+            if (channel is not null) { try { oldMessage = await channel.GetMessageAsync(messageId); } catch { } }
+            if (oldMessage is not null) { await oldMessage.DeleteAsync(); }
         }
 
         public static List<string> GetTagsByDiscordId(ulong discordId)
