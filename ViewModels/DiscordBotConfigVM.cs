@@ -114,6 +114,8 @@ namespace GTRC_WPF_UserControls.ViewModels
             if (Series is not null)
             {
                 DbApiListResponse<Season> response = await DbApi.DynConnection.Season.GetChildObjects(typeof(Series), Series.Id);
+                Season = null;
+                ListSeasons = [];
                 if (response.Status == HttpStatusCode.OK)
                 {
                     foreach (Season obj in response.List) { ListSeasons.Add(obj); }
