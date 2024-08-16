@@ -32,6 +32,7 @@ namespace GTRC_WPF_UserControls.Scripts
         public string LogText = string.Empty;
         public SocketUserMessage? UserMessage;
         public ulong ChannelId = GlobalValues.NoDiscordId;
+        public DateTime? Date = DateTime.UtcNow;
         public ulong AuthorDiscordId = GlobalValues.NoDiscordId;
         public User? User;
         public Series? Series;
@@ -40,7 +41,11 @@ namespace GTRC_WPF_UserControls.Scripts
         public List<Role> AuthorRoles = [];
         public bool UserIsAdmin = false;
         public Role AdminRole = new();
+        public Event? Event;
         public Entry? Entry;
+        public EntryEvent? EntryEvent;
+        public EntryUserEvent? EntryUserEvent;
+        public Car? Car;
 
         public string AdminRoleTag { get { return "<@&" + AdminRole.DiscordId.ToString() + ">"; } }
 
@@ -76,6 +81,7 @@ namespace GTRC_WPF_UserControls.Scripts
             UserMessage = userMessage;
             UserMessage ??= Context?.Message ?? null;
             ChannelId = GlobalValues.NoDiscordId;
+            Date = DateTime.UtcNow;
             AuthorDiscordId = GlobalValues.NoDiscordId;
             User = null;
             Series = null;
@@ -83,7 +89,11 @@ namespace GTRC_WPF_UserControls.Scripts
             DiscordChannelType = null;
             AuthorRoles = [];
             UserIsAdmin = false;
+            Event = null;
             Entry = null;
+            EntryEvent = null;
+            EntryUserEvent = null;
+            Car = null;
             if (UserMessage is not null)
             {
                 ChannelId = UserMessage.Channel.Id;
@@ -95,15 +105,20 @@ namespace GTRC_WPF_UserControls.Scripts
                     DiscordChannelType = respObjSerDis.Object.DiscordChannelType;
                     Series = respObjSerDis.Object.Series;
                     DbApiObjectResponse<Season> respObjSea = await DbApi.DynConnection.Season.GetCurrent(Series.Id, DateTime.UtcNow);
-                    if (respObjSea.Status == HttpStatusCode.OK) { Season = respObjSea.Object; }
+                    if (respObjSea.Status == HttpStatusCode.OK)
+                    {
+                        Season = respObjSea.Object;
+                        DbApiObjectResponse<Event> respObjEve = await DbApi.DynConnection.Event.GetNext(Season.Id);
+                        if (respObjEve.Status == HttpStatusCode.OK) { Event = respObjEve.Object; }
+                    }
                 }
                 UniqPropsDto<User> uniqDtoUser = new() { Index = 1, Dto = new UserUniqPropsDto1 { DiscordId = AuthorDiscordId } };
                 DbApiObjectResponse<User> respObjUser = await DbApi.DynConnection.User.GetByUniqProps(uniqDtoUser);
                 if (respObjUser.Status == HttpStatusCode.OK)
                 {
                     User = respObjUser.Object;
-                    DbApiListResponse<Role> respObjRole = await DbApi.Connection.Role.GetByUser(respObjUser.Object.Id);
-                    if (respObjRole.Status == HttpStatusCode.OK) { AuthorRoles = respObjRole.List; }
+                    DbApiListResponse<Role> respListRole = await DbApi.DynConnection.Role.GetByUser(User.Id);
+                    AuthorRoles = (await DbApi.DynConnection.Role.GetByUser(User.Id)).List;
                     foreach (Role role in AuthorRoles) { if (role.Name == AdminRoleName) { UserIsAdmin = true; break; } }
                 }
             }
@@ -130,8 +145,12 @@ namespace GTRC_WPF_UserControls.Scripts
             {
                 if (replyWithError)
                 {
-                    LogText = "Du bist nicht in der Datenbank eingetragen. Vermutlich sind die " + AdminRoleTag +
-                        " noch nicht dazu gekommen, deine Discord-ID in der Datenbank zu hinterlegen.";
+                    if (UserIsAdmin) { LogText = "Der Fahrer ist nicht in der Datenbank eingetragen. " + AdminRoleTag + " Möglicherweise fehlt seine Discord-ID."; }
+                    else
+                    {
+                        LogText = "Du bist nicht in der Datenbank eingetragen. Vermutlich sind die " + AdminRoleTag +
+                            " noch nicht dazu gekommen, deine Discord-ID in der Datenbank zu hinterlegen.";
+                    }
                     await ErrorResponse();
                 }
                 return false;
@@ -139,9 +158,24 @@ namespace GTRC_WPF_UserControls.Scripts
             return true;
         }
 
-        public async Task<bool> IsValidRaceNumber(string raceNumberStr, bool replyWithError = true)
+        public async Task<bool> UserIsOnEntry(bool replyWithError = true)
         {
-            if (ushort.TryParse(raceNumberStr, out ushort raceNumber) && raceNumber <= Entry.MaxRaceNumber && raceNumber >= Entry.MinRaceNumber) { return true; }
+            if (User is not null && Entry is not null)
+            {
+                DbApiListResponse<User> respListUser = await DbApi.DynConnection.User.GetByEntry(Entry.Id);
+                foreach (User user in respListUser.List) { if (user.Id == User.Id) { return true; } }
+                if (replyWithError && !UserIsAdmin)
+                {
+                    LogText = "Du bist nicht dazu berechtigt, Änderungen für den Teilnehmer #" + Entry.RaceNumber.ToString() + " " + Entry.Team.Name + " vorzunehmen.";
+                    await ErrorResponse();
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> IsValidRaceNumber(string strRaceNumber, bool replyWithError = true)
+        {
+            if (ushort.TryParse(strRaceNumber, out ushort raceNumber) && raceNumber <= Entry.MaxRaceNumber && raceNumber >= Entry.MinRaceNumber) { return true; }
             if (replyWithError)
             {
                 LogText = "Bitte eine gültige Startnummer angeben.";
@@ -150,32 +184,147 @@ namespace GTRC_WPF_UserControls.Scripts
             return false;
         }
 
-        public async Task<bool> IsRegisteredRaceNumer(string raceNumberStr, bool replyWithError = true)
+        public async Task<bool> IsRegisteredRaceNumer(string strRaceNumber, bool replyWithError = true)
         {
-            return await IsRegisteredRaceNumer(ParseRaceNumber(raceNumberStr), replyWithError);
+            return await IsRegisteredRaceNumer(ParseRaceNumber(strRaceNumber), replyWithError);
         }
 
         public async Task<bool> IsRegisteredRaceNumer(ushort raceNumber, bool replyWithError = true)
         {
+            Entry = null;
+            EntryEvent = null;
+            EntryUserEvent = null;
             if (Season is not null)
             {
                 UniqPropsDto<Entry> uniqDtoEnt = new() { Dto = new EntryUniqPropsDto0() { SeasonId = Season.Id, RaceNumber = raceNumber, } };
-                DbApiObjectResponse<Entry> respEnt = await DbApi.DynConnection.Entry.GetByUniqProps(uniqDtoEnt);
-                if (respEnt.Status == HttpStatusCode.OK) { Entry = respEnt.Object; return true; }
+                DbApiObjectResponse<Entry> respObjEnt = await DbApi.DynConnection.Entry.GetByUniqProps(uniqDtoEnt);
+                if (respObjEnt.Status == HttpStatusCode.OK) { Entry = respObjEnt.Object; return true; }
+                if (replyWithError)
+                {
+                    LogText = "Es ist kein Teilnehmer mit der Startnummer #" + raceNumber.ToString() + " für die Meisterschaft registriert.";
+                    await ErrorResponse();
+                }
             }
-            if (replyWithError)
-            {
-                LogText = "Es ist kein Teilnehmer mit der Startnummer #" + raceNumber.ToString() + " für die Meisterschaft registriert.";
-                await ErrorResponse();
-            }
-            Entry = null;
             return false;
         }
 
-        public ushort ParseRaceNumber(string raceNumberStr)
+        public async Task<bool> IsValidEventNr(string strEventNr, bool replyWithError = true)
         {
-            if (ushort.TryParse(raceNumberStr, out ushort raceNumber)) { return raceNumber; }
+            return await IsValidEventNr(ParseEventNr(strEventNr), replyWithError);
+        }
+
+        public async Task<bool> IsValidEventNr(int eventNr, bool replyWithError = true)
+        {
+            Event = null;
+            EntryEvent = null;
+            EntryUserEvent = null;
+            if (Season is not null)
+            {
+                DbApiObjectResponse<Event> respObjEve = await DbApi.DynConnection.Event.GetByNr(Season.Id, eventNr);
+                if (respObjEve.Status == HttpStatusCode.OK) { Event = respObjEve.Object; return true; }
+                if (replyWithError)
+                {
+                    LogText = "Bitte eine gültige Event-Nr angeben.";
+                    DbApiListResponse<Event> respListEve = await DbApi.DynConnection.Event.GetChildObjects(typeof(Season), Season.Id);
+                    if (respListEve.Status == HttpStatusCode.OK)
+                    {
+                        int eventsCount = 0;
+                        foreach (Event _event in respListEve.List) { if (!_event.IsPreQualifying) { eventsCount++; } }
+                        LogText = "Bitte eine Event-Nr zwischen 1 und " + eventsCount.ToString() + " angeben.";
+                    }
+                    await ErrorResponse();
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> IsRegisteredUserForSeason(bool replyWithError = true)
+        {
+            Entry = null;
+            EntryEvent = null;
+            EntryUserEvent = null;
+            if (Season is not null && User is not null)
+            {
+                DbApiListResponse<Entry> respListEnt = await DbApi.DynConnection.Entry.GetByUserSeason(User.Id, Season.Id);
+                if (respListEnt.List.Count > 0) { Entry = respListEnt.List[0]; return true; }
+                if (replyWithError)
+                {
+                    LogText = "Du bist noch nicht für die Meisterschaft registriert.";
+                    await ErrorResponse();
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> IsRegisteredUserForEvent(bool replyWithError = true)
+        {
+            Entry = null;
+            EntryEvent = null;
+            EntryUserEvent = null;
+            if (User is not null && Event is not null)
+            {
+                DbApiListResponse<Entry> respListEnt = await DbApi.DynConnection.Entry.GetByUserEvent(User.Id, Event.Id);
+                if (respListEnt.List.Count > 0) { Entry = respListEnt.List[0]; return true; }
+                if (replyWithError)
+                {
+                    LogText = "Du bist noch nicht für dieses Event registriert.";
+                    await ErrorResponse();
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> IsValidAccCarId(string strAccCarId, bool replyWithError = true)
+        {
+            return await IsValidAccCarId(ParseAccCarId(strAccCarId), replyWithError);
+        }
+
+        public async Task<bool> IsValidAccCarId(uint accCarId, bool replyWithError = true)
+        {
+            Car = null;
+            if (Season is not null)
+            {
+                UniqPropsDto<Car> uniqDtoCar = new() { Index = 1, Dto = new CarUniqPropsDto1() { AccCarId = accCarId } };
+                DbApiObjectResponse<Car> respObjCar = await DbApi.DynConnection.Car.GetByUniqProps(uniqDtoCar);
+                if (respObjCar.Status == HttpStatusCode.OK)
+                {
+                    DbApiListResponse<SeasonCarclass> respListSeaCarcl = await DbApi.DynConnection.SeasonCarclass.GetChildObjects(typeof(Season), Season.Id);
+                    foreach (SeasonCarclass seasonCarclass in respListSeaCarcl.List)
+                    {
+                        if (respObjCar.Object.Carclass.Id == seasonCarclass.Carclass.Id) { Car = respObjCar.Object; return true; }
+                    }
+                    if (replyWithError)
+                    {
+                        LogText = "Es sind keine Fahrzeuge der Klasse " + respObjCar.Object.Carclass.Name + " für die Meisterschaft zugelassen.";
+                        await ErrorResponse();
+                    }
+                    return false;
+                }
+                if (replyWithError)
+                {
+                    LogText = "Bitte eine gültige Fahrzeugnummer angeben.";
+                    await ErrorResponse();
+                }
+            }
+            return false;
+        }
+
+        public static ushort ParseRaceNumber(string input)
+        {
+            if (ushort.TryParse(input, out ushort output)) { return output; }
             return ushort.MaxValue;
+        }
+
+        public static int ParseEventNr(string input)
+        {
+            if (int.TryParse(input, out int output)) { return output; }
+            return int.MinValue;
+        }
+
+        public static uint ParseAccCarId(string input)
+        {
+            if (uint.TryParse(input, out uint output)) { return output; }
+            return uint.MaxValue;
         }
     }
 }

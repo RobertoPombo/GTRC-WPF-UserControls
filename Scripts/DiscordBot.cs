@@ -53,13 +53,13 @@ namespace GTRC_WPF_UserControls.Scripts
         {
             if (Config is not null && Client is not null)
             {
-                UserMessage = arg as SocketUserMessage;
-                SocketCommandContext context = new(Client, UserMessage);
                 int argPos = 0;
                 List<string> Tags = [];
                 List<string> TagList = GetTagsByDiscordId(Config.DiscordBotId);
                 foreach (string _tag in TagList) { Tags.Add(_tag + " "); }
                 Tags.Add("!");
+                UserMessage = arg as SocketUserMessage;
+                SocketCommandContext context = new(Client, UserMessage);
                 foreach (string tag in Tags)
                 {
                     if (UserMessage?.HasStringPrefix(tag, ref argPos) ?? false)
