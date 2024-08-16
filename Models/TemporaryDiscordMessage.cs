@@ -49,6 +49,17 @@ namespace GTRC_WPF_UserControls.Models
             return false;
         }
 
+        public bool IsOverridable()
+        {
+            DiscordMessageType[] listTypes = (DiscordMessageType[])Enum.GetValues(typeof(DiscordMessageType));
+            foreach (DiscordMessageType type in listTypes )
+            {
+                TemporaryDiscordMessage message = new() { Type = type };
+                if (message.DoesOverride(this)) { return true; };
+            }
+            return false;
+        }
+
         public static void LoadJson()
         {
             List.Clear();

@@ -66,6 +66,7 @@ namespace GTRC_WPF_UserControls.Scripts
                     {
                         var result = await commands.ExecuteAsync(context, argPos, services);
                         if (!result.IsSuccess && UserMessage is not null) { OnCommandNotFound(); }
+                        break;
                     }
                 }
             }
@@ -153,7 +154,7 @@ namespace GTRC_WPF_UserControls.Scripts
         {
             IUserMessage newUserMessage = await channel.SendMessageAsync(MessageContent);
             TemporaryDiscordMessage newMessage = new() { MessageId = newUserMessage.Id, ChannelId = channel.Id, Type = discordMessageType };
-            TemporaryDiscordMessage.List.Add(newMessage);
+            if (newMessage.IsOverridable()) { TemporaryDiscordMessage.List.Add(newMessage); }
             TemporaryDiscordMessage.SaveJson();
         }
 
