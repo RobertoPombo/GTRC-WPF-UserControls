@@ -23,6 +23,8 @@ namespace GTRC_WPF_UserControls.Scripts
         public DiscordSocketClient? Client;
         public DiscordBotConfig? Config;
 
+        public SocketUserMessage? UserMessage;
+
         public DiscordBot()
         {
             Initialize();
@@ -51,8 +53,8 @@ namespace GTRC_WPF_UserControls.Scripts
         {
             if (Config is not null && Client is not null)
             {
-                SocketUserMessage? userMessage = arg as SocketUserMessage;
-                SocketCommandContext context = new(Client, userMessage);
+                UserMessage = arg as SocketUserMessage;
+                SocketCommandContext context = new(Client, UserMessage);
                 int argPos = 0;
                 List<string> Tags = [];
                 List<string> TagList = GetTagsByDiscordId(Config.DiscordBotId);
@@ -60,14 +62,10 @@ namespace GTRC_WPF_UserControls.Scripts
                 Tags.Add("!");
                 foreach (string tag in Tags)
                 {
-                    if (userMessage?.HasStringPrefix(tag, ref argPos) ?? false)
+                    if (UserMessage?.HasStringPrefix(tag, ref argPos) ?? false)
                     {
                         var result = await commands.ExecuteAsync(context, argPos, services);
-                        if (!result.IsSuccess && userMessage is not null)
-                        {
-                            await userMessage.Channel.SendMessageAsync("!befehle");
-                            await userMessage.AddReactionAsync(DiscordCommandsBase.EmojiFail);
-                        }
+                        if (!result.IsSuccess && UserMessage is not null) { OnCommandNotFound(); }
                     }
                 }
             }
@@ -171,5 +169,9 @@ namespace GTRC_WPF_UserControls.Scripts
             List<string> TagList = ["<@" + discordId.ToString() + ">", "<@!" + discordId.ToString() + ">"];
             return TagList;
         }
+
+        public static event Notify? CommandNotFound;
+
+        public static void OnCommandNotFound() { CommandNotFound?.Invoke(); }
     }
 }
