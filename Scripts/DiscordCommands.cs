@@ -49,6 +49,7 @@ namespace GTRC_WPF_UserControls.Scripts
 
         public string AdminRoleTag { get { return "<@&" + AdminRole.DiscordId.ToString() + ">"; } }
         public string LogUnknownError { get { return AdminRoleTag + " Unbekannter Fehler."; } }
+        public string EntryToString { get { if (Entry is null) { return string.Empty; } return "#" + Entry.RaceNumber.ToString() + " " + Entry.Team.Name; } }
 
         public DiscordCommands()
         {
@@ -132,9 +133,9 @@ namespace GTRC_WPF_UserControls.Scripts
                 if (Context is not null)
                 {
                     await Context.Message.RemoveAllReactionsAsync();
-                    await Context.Message.AddReactionAsync(EmojiFail);
+                    _ = Context.Message.AddReactionAsync(EmojiFail);
                 }
-                if (LogText.Length > 0) { await ReplyAsync(LogText); }
+                if (LogText.Length > 0) { _ = ReplyAsync(LogText); }
                 LogText = string.Empty;
                 IsError = true;
             }
