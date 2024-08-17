@@ -83,7 +83,7 @@ namespace GTRC_WPF_UserControls.Scripts
         public async Task GetAdminRole()
         {
             UniqPropsDto<Role> roleUniqDto = new() { Dto = new RoleUniqPropsDto0() { Name = AdminRoleName } };
-            DbApiObjectResponse<Role> roleResponse = await DbApi.Connection.Role.GetByUniqProps(roleUniqDto);
+            DbApiObjectResponse<Role> roleResponse = await DbApi.Con.Role.GetByUniqProps(roleUniqDto);
             if (roleResponse.Status == HttpStatusCode.OK) { AdminRole = roleResponse.Object; }
         }
 
@@ -111,26 +111,26 @@ namespace GTRC_WPF_UserControls.Scripts
                 ChannelId = UserMessage.Channel.Id;
                 AuthorDiscordId = UserMessage.Author.Id;
                 UniqPropsDto<SeriesDiscordchanneltype> uniqDtoSerDis = new() { Index = 1, Dto = new SeriesDiscordchanneltypeUniqPropsDto1() { DiscordId = ChannelId } };
-                DbApiObjectResponse<SeriesDiscordchanneltype> respObjSerDis = await DbApi.DynConnection.SeriesDiscordchanneltype.GetByUniqProps(uniqDtoSerDis);
+                DbApiObjectResponse<SeriesDiscordchanneltype> respObjSerDis = await DbApi.DynCon.SeriesDiscordchanneltype.GetByUniqProps(uniqDtoSerDis);
                 if (respObjSerDis.Status == HttpStatusCode.OK)
                 {
                     DiscordChannelType = respObjSerDis.Object.DiscordChannelType;
                     Series = respObjSerDis.Object.Series;
-                    DbApiObjectResponse<Season> respObjSea = await DbApi.DynConnection.Season.GetCurrent(Series.Id, DateTime.UtcNow);
+                    DbApiObjectResponse<Season> respObjSea = await DbApi.DynCon.Season.GetCurrent(Series.Id, DateTime.UtcNow);
                     if (respObjSea.Status == HttpStatusCode.OK)
                     {
                         Season = respObjSea.Object;
-                        DbApiObjectResponse<Event> respObjEve = await DbApi.DynConnection.Event.GetNext(Season.Id);
+                        DbApiObjectResponse<Event> respObjEve = await DbApi.DynCon.Event.GetNext(Season.Id);
                         if (respObjEve.Status == HttpStatusCode.OK) { Event = respObjEve.Object; }
                     }
                 }
                 UniqPropsDto<User> uniqDtoUser = new() { Index = 1, Dto = new UserUniqPropsDto1 { DiscordId = AuthorDiscordId } };
-                DbApiObjectResponse<User> respObjUser = await DbApi.DynConnection.User.GetByUniqProps(uniqDtoUser);
+                DbApiObjectResponse<User> respObjUser = await DbApi.DynCon.User.GetByUniqProps(uniqDtoUser);
                 if (respObjUser.Status == HttpStatusCode.OK)
                 {
                     User = respObjUser.Object;
-                    DbApiListResponse<Role> respListRole = await DbApi.DynConnection.Role.GetByUser(User.Id);
-                    AuthorRoles = (await DbApi.DynConnection.Role.GetByUser(User.Id)).List;
+                    DbApiListResponse<Role> respListRole = await DbApi.DynCon.Role.GetByUser(User.Id);
+                    AuthorRoles = (await DbApi.DynCon.Role.GetByUser(User.Id)).List;
                     foreach (Role role in AuthorRoles) { if (role.Name == AdminRoleName) { UserIsAdmin = true; break; } }
                 }
             }
@@ -174,7 +174,7 @@ namespace GTRC_WPF_UserControls.Scripts
         {
             if (User is not null && Entry is not null)
             {
-                DbApiListResponse<User> respListUser = await DbApi.DynConnection.User.GetByEntry(Entry.Id);
+                DbApiListResponse<User> respListUser = await DbApi.DynCon.User.GetByEntry(Entry.Id);
                 foreach (User user in respListUser.List) { if (user.Id == User.Id) { return true; } }
                 if (replyWithError && !UserIsAdmin)
                 {
@@ -214,7 +214,7 @@ namespace GTRC_WPF_UserControls.Scripts
             if (Season is not null && await IsValidRaceNumber(raceNumber, replyWithError))
             {
                 UniqPropsDto<Entry> uniqDtoEnt = new() { Dto = new EntryUniqPropsDto0() { SeasonId = Season.Id, RaceNumber = raceNumber, } };
-                DbApiObjectResponse<Entry> respObjEnt = await DbApi.DynConnection.Entry.GetByUniqProps(uniqDtoEnt);
+                DbApiObjectResponse<Entry> respObjEnt = await DbApi.DynCon.Entry.GetByUniqProps(uniqDtoEnt);
                 if (respObjEnt.Status == HttpStatusCode.OK) { Entry = respObjEnt.Object; return true; }
                 if (replyWithError)
                 {
@@ -237,12 +237,12 @@ namespace GTRC_WPF_UserControls.Scripts
             EntryUserEvent = null;
             if (Season is not null)
             {
-                DbApiObjectResponse<Event> respObjEve = await DbApi.DynConnection.Event.GetByNr(Season.Id, eventNr);
+                DbApiObjectResponse<Event> respObjEve = await DbApi.DynCon.Event.GetByNr(Season.Id, eventNr);
                 if (respObjEve.Status == HttpStatusCode.OK) { Event = respObjEve.Object; return true; }
                 if (replyWithError)
                 {
                     LogText = "Bitte eine gültige Event-Nr angeben.";
-                    DbApiListResponse<Event> respListEve = await DbApi.DynConnection.Event.GetChildObjects(typeof(Season), Season.Id);
+                    DbApiListResponse<Event> respListEve = await DbApi.DynCon.Event.GetChildObjects(typeof(Season), Season.Id);
                     if (respListEve.Status == HttpStatusCode.OK)
                     {
                         int eventsCount = 0;
@@ -263,7 +263,7 @@ namespace GTRC_WPF_UserControls.Scripts
             EntryUserEvent = null;
             if (Season is not null && User is not null)
             {
-                DbApiListResponse<Entry> respListEnt = await DbApi.DynConnection.Entry.GetByUserSeason(User.Id, Season.Id);
+                DbApiListResponse<Entry> respListEnt = await DbApi.DynCon.Entry.GetByUserSeason(User.Id, Season.Id);
                 if (respListEnt.List.Count > 0) { Entry = respListEnt.List[0]; return true; }
                 if (replyWithError)
                 {
@@ -281,7 +281,7 @@ namespace GTRC_WPF_UserControls.Scripts
             EntryUserEvent = null;
             if (User is not null && Event is not null)
             {
-                DbApiListResponse<Entry> respListEnt = await DbApi.DynConnection.Entry.GetByUserEvent(User.Id, Event.Id);
+                DbApiListResponse<Entry> respListEnt = await DbApi.DynCon.Entry.GetByUserEvent(User.Id, Event.Id);
                 if (respListEnt.List.Count > 0) { Entry = respListEnt.List[0]; return true; }
                 if (replyWithError)
                 {
@@ -303,10 +303,10 @@ namespace GTRC_WPF_UserControls.Scripts
             if (Season is not null)
             {
                 UniqPropsDto<Car> uniqDtoCar = new() { Index = 1, Dto = new CarUniqPropsDto1() { AccCarId = accCarId } };
-                DbApiObjectResponse<Car> respObjCar = await DbApi.DynConnection.Car.GetByUniqProps(uniqDtoCar);
+                DbApiObjectResponse<Car> respObjCar = await DbApi.DynCon.Car.GetByUniqProps(uniqDtoCar);
                 if (respObjCar.Status == HttpStatusCode.OK)
                 {
-                    DbApiListResponse<SeasonCarclass> respListSeaCarcl = await DbApi.DynConnection.SeasonCarclass.GetChildObjects(typeof(Season), Season.Id);
+                    DbApiListResponse<SeasonCarclass> respListSeaCarcl = await DbApi.DynCon.SeasonCarclass.GetChildObjects(typeof(Season), Season.Id);
                     foreach (SeasonCarclass seasonCarclass in respListSeaCarcl.List)
                     {
                         if (respObjCar.Object.Carclass.Id == seasonCarclass.Carclass.Id) { Car = respObjCar.Object; return true; }
