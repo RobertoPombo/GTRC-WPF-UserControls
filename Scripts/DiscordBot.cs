@@ -89,7 +89,7 @@ namespace GTRC_WPF_UserControls.Scripts
 
         public async Task SendMessage(string messageContent, ulong channelId, DiscordMessageType discordMessageType)
         {
-            if (Config is not null && Client is not null)
+            if (Config is not null && Client is not null && messageContent.Length > 0)
             {
                 SocketTextChannel? channel = Client.GetGuild(Config.DiscordServerId)?.GetTextChannel(channelId);
                 if (channel is not null)

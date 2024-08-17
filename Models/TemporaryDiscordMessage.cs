@@ -27,7 +27,7 @@ namespace GTRC_WPF_UserControls.Models
             Type == DiscordMessageType.Commands ||
             Type == DiscordMessageType.Entries ||
             Type == DiscordMessageType.NewEntries ||
-            Type == DiscordMessageType.EntriesIssues ||
+            Type == DiscordMessageType.EntryConflicts ||
             Type == DiscordMessageType.Events ||
             Type == DiscordMessageType.Cars ||
             Type == DiscordMessageType.Rating ||
@@ -41,9 +41,9 @@ namespace GTRC_WPF_UserControls.Models
             )) { return true; }
 
             else if ((
-            message.Type == DiscordMessageType.EntriesIssues
+            message.Type == DiscordMessageType.EntryConflicts
             ) && (
-            Type == DiscordMessageType.EntriesIssues
+            Type == DiscordMessageType.EntryConflicts
             )) { return true; }
 
             return false;
