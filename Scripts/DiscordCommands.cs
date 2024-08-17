@@ -27,6 +27,9 @@ namespace GTRC_WPF_UserControls.Scripts
         public static readonly Emoji EmojiThinking = new("🤔");
 
         private static readonly string AdminRoleName = "Communityleitung";
+        private static readonly TimeSpan DurationTimeoutExplainCommands = TimeSpan.FromSeconds(1);
+
+        private static DateTime StartTimeoutExplainCommands = DateTime.UtcNow;
 
         public bool IsError = false;
         public string LogText = string.Empty;
@@ -66,9 +69,16 @@ namespace GTRC_WPF_UserControls.Scripts
 
         public virtual void Initialize() { }
 
-        public virtual async Task ExplainCommands() { }
+        public void ExplainCommandsTrigger()
+        {
+            if (DateTime.UtcNow - StartTimeoutExplainCommands > DurationTimeoutExplainCommands)
+            {
+                StartTimeoutExplainCommands = DateTime.UtcNow;
+                _ = ExplainCommands();
+            }
+        }
 
-        public void ExplainCommandsTrigger() { _ = ExplainCommands(); }
+        public virtual async Task ExplainCommands() { }
 
         public async Task GetAdminRole()
         {
@@ -177,7 +187,12 @@ namespace GTRC_WPF_UserControls.Scripts
 
         public async Task<bool> IsValidRaceNumber(string strRaceNumber, bool replyWithError = true)
         {
-            if (ushort.TryParse(strRaceNumber, out ushort raceNumber) && raceNumber <= Entry.MaxRaceNumber && raceNumber >= Entry.MinRaceNumber) { return true; }
+            return await IsValidRaceNumber(ParseRaceNumber(strRaceNumber), replyWithError);
+        }
+
+        public async Task<bool> IsValidRaceNumber(ushort raceNumber, bool replyWithError = true)
+        {
+            if (raceNumber <= Entry.MaxRaceNumber && raceNumber >= Entry.MinRaceNumber) { return true; }
             if (replyWithError)
             {
                 LogText = "Bitte eine gültige Startnummer angeben.";
@@ -196,7 +211,7 @@ namespace GTRC_WPF_UserControls.Scripts
             Entry = null;
             EntryEvent = null;
             EntryUserEvent = null;
-            if (Season is not null)
+            if (Season is not null && await IsValidRaceNumber(raceNumber, replyWithError))
             {
                 UniqPropsDto<Entry> uniqDtoEnt = new() { Dto = new EntryUniqPropsDto0() { SeasonId = Season.Id, RaceNumber = raceNumber, } };
                 DbApiObjectResponse<Entry> respObjEnt = await DbApi.DynConnection.Entry.GetByUniqProps(uniqDtoEnt);

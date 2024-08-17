@@ -19,19 +19,21 @@ namespace GTRC_WPF_UserControls.Models
         {
             if ((
             message.Type == DiscordMessageType.Commands ||
+            message.Type == DiscordMessageType.BoP ||
             message.Type == DiscordMessageType.Events ||
             message.Type == DiscordMessageType.Cars ||
-            message.Type == DiscordMessageType.Rating ||
-            message.Type == DiscordMessageType.Organizations
+            message.Type == DiscordMessageType.Organizations ||
+            message.Type == DiscordMessageType.Rating
             ) && (
             Type == DiscordMessageType.Commands ||
             Type == DiscordMessageType.Entries ||
             Type == DiscordMessageType.NewEntries ||
             Type == DiscordMessageType.EntryConflicts ||
+            Type == DiscordMessageType.BoP ||
             Type == DiscordMessageType.Events ||
             Type == DiscordMessageType.Cars ||
-            Type == DiscordMessageType.Rating ||
-            Type == DiscordMessageType.Organizations
+            Type == DiscordMessageType.Organizations ||
+            Type == DiscordMessageType.Rating
             )) { return true; }
 
             else if ((
