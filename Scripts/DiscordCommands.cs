@@ -234,6 +234,7 @@ namespace GTRC_WPF_UserControls.Scripts
                         foreach (Event _event in respListEve.List) { if (!_event.IsPreQualifying) { eventsCount++; } }
                         LogText = "Bitte eine Event-Nr zwischen 1 und " + eventsCount.ToString() + " angeben.";
                     }
+                    LogText += " Details zu den Events findest du im `!kalender`.";
                     await ErrorResponse();
                 }
             }
@@ -304,7 +305,7 @@ namespace GTRC_WPF_UserControls.Scripts
                 }
                 if (replyWithError)
                 {
-                    LogText = "Bitte eine gültige Fahrzeugnummer angeben.";
+                    LogText = "Bitte eine gültige Fahrzeugnummer angeben. Du findest alle Fahrzeugnummern in der `!fahrzeugliste`.";
                     await ErrorResponse();
                 }
             }
