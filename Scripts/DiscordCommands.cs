@@ -50,7 +50,7 @@ namespace GTRC_WPF_UserControls.Scripts
         public EntryUserEvent? EntryUserEvent;
         public Car? Car;
 
-        public string AdminRoleTag { get { return "<@&" + AdminRole.DiscordId.ToString() + ">"; } }
+        public string AdminRoleTag { get { return TagUser(AdminRole.DiscordId); } }
         public string LogUnknownError { get { return AdminRoleTag + " Unbekannter Fehler."; } }
         public string EntryToString { get { if (Entry is null) { return string.Empty; } return "#" + Entry.RaceNumber.ToString() + " " + Entry.Team.Name; } }
 
@@ -79,6 +79,21 @@ namespace GTRC_WPF_UserControls.Scripts
         }
 
         public virtual async Task ExplainCommands() { }
+
+        public static string TagUser(ulong discordId, bool mobileType = false)
+        {
+            string tagText = string.Empty;
+            if (mobileType) { tagText += "<@!" + discordId.ToString() + "> "; }
+            else { tagText += "<@" + discordId.ToString() + "> "; }
+            return tagText;
+        }
+
+        public static string TagUsers(List<ulong> listDiscordIds, bool mobileType = false)
+        {
+            string tagText = string.Empty;
+            foreach (ulong discordId in listDiscordIds) { tagText += TagUser(discordId, mobileType); }
+            return tagText;
+        }
 
         public async Task GetAdminRole()
         {
