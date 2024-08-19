@@ -47,7 +47,7 @@ namespace GTRC_WPF_UserControls.ViewModels
 
         public DiscordBotConfig? ConfirmActiveBot()
         {
-            OnChangedDiscordBotIsActive();
+            DiscordBotConfig.OnChangedDiscordBotIsActive();
             DiscordBotConfig? activeBot = DiscordBotConfig.GetActiveBot();
             if (activeBot is null) { GlobalValues.CurrentLogText = "Discord bot stopped."; }
             else { GlobalValues.CurrentLogText = "Discord bot is running."; }
@@ -78,10 +78,6 @@ namespace GTRC_WPF_UserControls.ViewModels
                 Selected = DiscordBotConfig.List[0];
             }
         }
-
-        public static event Notify? ChangedDiscordBotIsActive;
-
-        public static void OnChangedDiscordBotIsActive() { ChangedDiscordBotIsActive?.Invoke(); }
 
         public UICmd RestoreJsonCmd { get; set; }
         public UICmd SaveJsonCmd { get; set; }
