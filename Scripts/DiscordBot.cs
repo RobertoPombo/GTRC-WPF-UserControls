@@ -4,6 +4,9 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Newtonsoft.Json;
+using System.IO;
+using System.Text;
 
 using GTRC_Basics.Configs;
 using GTRC_WPF_UserControls.ViewModels;
@@ -15,6 +18,8 @@ namespace GTRC_WPF_UserControls.Scripts
 {
     public class DiscordBot
     {
+        public static readonly string DirectoryPendingNotifications = GlobalValues.DataDirectory + "pending driver notifications\\";
+
         private CommandService commands = new();
         private InteractionService? interactions;
         private IServiceProvider? services;
@@ -54,8 +59,10 @@ namespace GTRC_WPF_UserControls.Scripts
             if (Config is not null && Client is not null)
             {
                 int argPos = 0;
+                List<string> TagList = [];
+                TagList.Add(GetTagByDiscordId(Config.DiscordBotId));
+                TagList.Add(GetTagByDiscordId(Config.DiscordBotId, true));
                 List<string> Tags = [];
-                List<string> TagList = GetTagsByDiscordId(Config.DiscordBotId);
                 foreach (string _tag in TagList) { Tags.Add(_tag + " "); }
                 Tags.Add("!");
                 UserMessage = arg as SocketUserMessage;
@@ -165,10 +172,32 @@ namespace GTRC_WPF_UserControls.Scripts
             if (oldMessage is not null) { await oldMessage.DeleteAsync(); }
         }
 
-        public static List<string> GetTagsByDiscordId(ulong discordId)
+        public static string GetTagByDiscordId(ulong discordId, bool mobileType = false)
         {
-            List<string> TagList = ["<@" + discordId.ToString() + ">", "<@!" + discordId.ToString() + ">"];
-            return TagList;
+            string tagText = string.Empty;
+            if (mobileType) { tagText += "<@!" + discordId.ToString() + "> "; }
+            else { tagText += "<@" + discordId.ToString() + "> "; }
+            return tagText;
+        }
+
+        public static string GetTagsByDiscordIds(List<ulong> listDiscordIds, bool mobileType = false)
+        {
+            string tagText = string.Empty;
+            foreach (ulong discordId in listDiscordIds) { tagText += GetTagByDiscordId(discordId, mobileType); }
+            return tagText;
+        }
+
+        public static List<int> LoadEntryIdList(string path)
+        {
+            if (!Directory.Exists(DirectoryPendingNotifications)) { Directory.CreateDirectory(DirectoryPendingNotifications); }
+            if (!File.Exists(path)) { SaveEntryIdList(path, []); }
+            try { return JsonConvert.DeserializeObject<List<int>>(File.ReadAllText(path, Encoding.Unicode)) ?? []; }
+            catch { return []; }
+        }
+
+        public static void SaveEntryIdList(string path, List<int> entryIdsPending)
+        {
+            File.WriteAllText(path, JsonConvert.SerializeObject(entryIdsPending, Formatting.Indented), Encoding.Unicode);
         }
 
         public static event Notify? CommandNotFound;
