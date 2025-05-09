@@ -16,6 +16,7 @@ namespace GTRC_WPF_UserControls.ViewModels
             SaveJsonCmd = new UICmd((o) => DiscordBotConfig.SaveJson());
             AddPresetCmd = new UICmd((o) => AddPreset());
             DelPresetCmd = new UICmd((o) => DelPreset());
+            DiscordBotConfig.LoadTokens();
             RestoreJson();
         }
 
